@@ -32,7 +32,7 @@ function decodeMesh(byteArray) {
   let outputGeometry = new decoderModule.Mesh();
   let decodingStatus = decoder.DecodeBufferToMesh(buffer, outputGeometry);
 
-  alert("Num points = " + outputGeometry.num_points());
+  // alert("Num points = " + outputGeometry.num_points());
 
   // You must explicitly delete objects created from the DracoModule
   // or Decoder.

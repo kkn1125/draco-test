@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader";
-console.log(THREE);
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+// import { TextureLoader } from "three/examples/jsm/loaders/TextureLoader";
+// console.log(THREE);
 
 // three.js globals.
 var camera, scene, renderer;
@@ -16,24 +18,52 @@ dracoLoader.setDecoderPath(
   "https://www.gstatic.com/draco/versioned/decoders/1.5.5/"
 );
 
+// load WATER texture
+var bumpTexture = new THREE.TextureLoader().load("./textures/map.png");
+bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+
+var grassTexture = new THREE.TextureLoader().load("./textures/grass-512.jpg");
+grassTexture.wrapS = grassTexture.wrapT = THREE.RepeatWrapping;
+
+const customUniforms = {
+  bumpTexture: { type: "t", value: bumpTexture },
+  bumpScale: { type: "f", value: bumpScale },
+  grassTexture: { type: "t", value: grassTexture },
+  grass2Texture: { type: "t", value: grassTexture },
+};
+
+var bumpScale = 2000.0;
+
+let controls = null;
+
 function initThreejs() {
   camera = new THREE.PerspectiveCamera(
     35,
     window.innerWidth / window.innerHeight,
     0.1,
-    15
+    3000
   );
-  camera.position.set(3, 0.25, 3);
+  camera.position.set(1, 1, 1);
+  camera.lookAt(new THREE.Vector3(0, 0.1, 0));
 
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x443333);
   scene.fog = new THREE.Fog(0x443333, 1, 4);
 
+  /* shader */
+  var customMaterial = new THREE.ShaderMaterial({
+    uniforms: customUniforms,
+    vertexShader: document.getElementById("vertexShader").textContent,
+    fragmentShader: document.getElementById("fragmentShader").textContent,
+  });
+
   // Ground
-  var plane = new THREE.Mesh(
-    new THREE.PlaneBufferGeometry(8, 8),
-    new THREE.MeshPhongMaterial({ color: 0x999999, specular: 0x101010 })
-  );
+  // var plane = new THREE.Mesh(
+  //   new THREE.PlaneBufferGeometry(8, 8),
+  //   new THREE.MeshPhongMaterial({ color: 0x999999, specular: 0x101010 })
+  // );
+  let planeGeo = new THREE.PlaneGeometry(1000, 1000, 100, 100);
+  let plane = new THREE.Mesh(planeGeo, customMaterial);
   plane.rotation.x = -Math.PI / 2;
   plane.position.y = 0.03;
   plane.receiveShadow = true;
@@ -56,6 +86,9 @@ function initThreejs() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
 
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.update();
+
   const container = document.getElementById("container");
   container.appendChild(renderer.domElement);
 
@@ -71,15 +104,17 @@ function onWindowResize() {
 
 function animate() {
   render();
+  controls.update();
+
   requestAnimationFrame(animate);
 }
 
 function render() {
   var timer = Date.now() * 0.0003;
 
-  camera.position.x = Math.sin(timer) * 0.5;
-  camera.position.z = Math.cos(timer) * 0.5;
-  camera.lookAt(new THREE.Vector3(0, 0.1, 0));
+  // camera.position.x = Math.sin(timer) * 0.5;
+  // camera.position.z = Math.cos(timer) * 0.5;
+  // camera.lookAt(new THREE.Vector3(0, 0.1, 0));
 
   renderer.render(scene, camera);
 }
